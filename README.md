@@ -21,4 +21,4 @@ If nothing is printing or there's a long delay between each print, check that yo
 
 ## Examples
 
-Reference [embassy.dev] for documentation and examples. The most relevant example should be in the embassy github under `examples/rp235x`.
+Reference [embassy.dev](https://embassy.dev/) for documentation and examples. The most relevant example should be in the embassy github under `examples/rp235x`.
