@@ -13,7 +13,7 @@ logging is done through the log.sh script. Usage example:
 ```
 replace the `test_logging` at the end with the filename you're running.
 
-**important notes for logging
+**important notes for logging**
 
 Make sure you set up the defmt usb task. Examples are shown in `test_logging.rs` and `scan_i2c.rs`.
 
