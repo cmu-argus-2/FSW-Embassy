@@ -17,6 +17,9 @@ use embassy_time::Timer;
 use static_cell::StaticCell;
 use {panic_probe as _};
 
+use vl53l4cd_ulp::VL53L4cd;
+use vl53l4cd_ulp::Error;
+
 use rtt_target::rtt_init_print;
 
 //use package name given in Cargo.toml
@@ -46,13 +49,16 @@ async fn main(spawner: Spawner) {
     let mut led = Output::new(p.PIN_42, Level::Low);
     led.set_high();
 
+    let sda = p.PIN_46;
+    let scl = p.PIN_47;
+
     // Shared I2C bus
-    let i2c = I2c::new_async(p.I2C1, p.PIN_47, p.PIN_46, Irqs, i2c::Config::default());
+    let i2c = I2c::new_async(p.I2C1, scl, sda, Irqs, i2c::Config::default());
     static I2C_BUS: StaticCell<I2c1Bus> = StaticCell::new();
     let i2c_bus = I2C_BUS.init(Mutex::new(i2c));
 
     //spawn adm1176 driver task
-    spawner.spawn(i2c_task_a(i2c_bus));
+    spawner.spawn(adm1176_task(i2c_bus));
 
 
     loop {
@@ -78,7 +84,7 @@ async fn defmtusb_wrapper(usb: Peri<'static, USB>) {
 }
 
 #[embassy_executor::task]
-async fn i2c_task_a(i2c_bus: &'static I2c1Bus) {
+async fn adm1176_task(i2c_bus: &'static I2c1Bus) {
     let i2c_dev = I2cDevice::new(i2c_bus);
     let mut sensor = adm1176::new(i2c_dev, 0x40);
     sensor.config(&["V_CONT", "I_CONT"]).await;
@@ -94,4 +100,35 @@ async fn i2c_task_a(i2c_bus: &'static I2c1Bus) {
         
         Timer::after_secs(1).await;
     }
+}
+
+#[embassy_executor::task]
+async fn vl53l4cd_task(i2c_bus: &'static I2c1Bus) {
+    let i2c_dev = I2cDevice::new(i2c_bus);
+    let mut sensor = VL53L4cd::new(i2c_dev, embassy_time::Delay);
+    sensor.sensor_init().await;
+    sensor.start_ranging().await;
+    loop {
+        match sensor.check_for_data_ready().await {
+            Ok(_) => {
+                match sensor.get_estimated_measurement().await {
+                    Ok(measurement) => {
+                        info!("Distance: {} mm", measurement.estimated_distance_mm);
+                    }
+                    Err(Error::I2cError(e)) => {
+                        error!("{:?}", e);
+                    }
+                    Err(_) => {
+                        error!("error");
+                    }
+                }
+            }
+            Err(Error::I2cError(e)) => {
+                error!("{:?}", e);
+            }
+            Err(_) => { error!("error"); }
+        }
+        sensor.clear_interrupt().await;
+        Timer::after_secs(1).await;
+    } 
 }

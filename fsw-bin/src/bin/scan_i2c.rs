@@ -58,7 +58,7 @@ async fn main(spawner: Spawner) {
     }
     loop {
         info!("looping...");
-        Timer::after_secs(5).await;
+        Timer::after_secs(1).await;
     }
 }
 
