@@ -58,8 +58,8 @@ async fn main(spawner: Spawner) {
     let i2c_bus = I2C_BUS.init(Mutex::new(i2c));
 
     //spawn adm1176 driver task
-    spawner.spawn(adm1176_task(i2c_bus));
-
+    // spawner.spawn(adm1176_task(i2c_bus));
+    spawner.spawn(vl53l4cd_task(i2c_bus));
 
     loop {
         info!("looping...");
