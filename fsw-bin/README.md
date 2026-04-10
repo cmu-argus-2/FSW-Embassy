@@ -1,5 +1,4 @@
-## Flashing and running a program
-
+## Building and Flashing a Program on the RP2350
 ```
 cargo run --bin test_logging
 ```
