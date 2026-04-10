@@ -1,4 +1,5 @@
 use embedded_hal_async::i2c::{I2c as I2cAsync, ErrorType};
+use core::result::Result::{Ok, Err};
 
 type I2cResult<T, I2cError> = core::result::Result<T, <I2cError as ErrorType>::Error>;
 
@@ -26,7 +27,7 @@ const CONTROL_SWOFF: u8 = 0x1 << 0;
 
 
 pub struct ADM1176<I2C: I2cAsync> {
-    i2c: I2C,
+    pub i2c: I2C,
     addr: u8,
     sense_resistor: f32,
     // on: bool,
@@ -34,6 +35,8 @@ pub struct ADM1176<I2C: I2cAsync> {
     v_fs_over_res: f32,
     i_fs_over_res: f32,
 }
+
+
 
 impl<I2C: I2cAsync> ADM1176<I2C> {
     pub fn new(i2c: I2C, addr: u8) -> Self {
