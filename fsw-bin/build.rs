@@ -12,8 +12,15 @@ use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
+use std::time::SystemTime;
 
 fn main() {
+    let epoch = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
+    println!("cargo:rustc-env=BUILD_EPOCH={}", epoch);
+
     // Put `memory.x` in our output directory and ensure it's
     // on the linker search path.
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());

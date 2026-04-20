@@ -32,7 +32,7 @@ async fn defmtusb_wrapper(usb: Peri<'static, USB>) {
 async fn main(spawner: embassy_executor::Spawner) {
     let p = embassy_rp::init(Default::default());
 
-    spawner.spawn(defmtusb_wrapper(p.USB));
+    let _ = spawner.spawn(defmtusb_wrapper(p.USB));
 
     //delay needed for setting up usb connection
     Timer::after_secs(3).await;

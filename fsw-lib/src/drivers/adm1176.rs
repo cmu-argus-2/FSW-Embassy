@@ -1,15 +1,14 @@
 use embedded_hal_async::i2c::{I2c as I2cAsync, ErrorType};
-use core::result::Result::{Ok, Err};
 
 type I2cResult<T, I2cError> = core::result::Result<T, <I2cError as ErrorType>::Error>;
 
-const DATA_V_MASK: u8 = 0xF0;
-const DATA_I_MASK: u8 = 0x0F;
+const _DATA_V_MASK: u8 = 0xF0;
+const _DATA_I_MASK: u8 = 0x0F;
 
 // Status register
 const STATUS_READ: u8 = 0x1 << 6;
 // _STATUS_ADC_OC = const(0x1 << 0)
-const STATUS_ADC_ALERT: u8 = 0x1 << 1;
+const _STATUS_ADC_ALERT: u8 = 0x1 << 1;
 // _STATUS_HS_OC = const(0x1 << 2)
 // STATUS_HS_ALERT = const(0x1 << 3)
 const STATUS_OFF_STATUS: u8 = 0x1 << 4;
@@ -27,7 +26,7 @@ const CONTROL_SWOFF: u8 = 0x1 << 0;
 
 
 pub struct ADM1176<I2C: I2cAsync> {
-    pub i2c: I2C,
+    i2c: I2C,
     addr: u8,
     sense_resistor: f32,
     // on: bool,
@@ -35,8 +34,6 @@ pub struct ADM1176<I2C: I2cAsync> {
     v_fs_over_res: f32,
     i_fs_over_res: f32,
 }
-
-
 
 impl<I2C: I2cAsync> ADM1176<I2C> {
     pub fn new(i2c: I2C, addr: u8) -> Self {
@@ -93,7 +90,7 @@ impl<I2C: I2cAsync> ADM1176<I2C> {
 
     async fn turn_on(&mut self) -> I2cResult<(), I2C> {
         let mut on: [u8;2] = [CONTROL_REG_ADDR, 0x04 & !CONTROL_SWOFF];
-        self.i2c.write(self.addr, &mut on).await;
+        self.i2c.write(self.addr, &mut on).await?;
         self.config(&["V_CONT", "I_CONT"]).await
     }
 
@@ -134,7 +131,7 @@ impl<I2C: I2cAsync> ADM1176<I2C> {
         self.i2c.write(self.addr, &[STATUS_READ]).await?;
         let mut status_buf = [0u8; 1];
         self.i2c.read(self.addr, &mut status_buf).await?;
-        self.i2c.write(self.addr, &[0x00 & !STATUS_READ]).await?;
+        self.i2c.write(self.addr, &[0x00]).await?;
         Ok(status_buf[0])
     }
 }

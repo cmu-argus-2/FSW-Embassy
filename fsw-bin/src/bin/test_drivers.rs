@@ -20,6 +20,7 @@ use {panic_probe as _};
 use rtt_target::rtt_init_print;
 
 //use package name given in Cargo.toml
+
 use fsw_lib::drivers::adm1176::ADM1176 as adm1176;
 
 type I2c1Bus = Mutex<NoopRawMutex, I2c<'static, I2C1, i2c::Async>>;
@@ -37,7 +38,7 @@ async fn main(spawner: Spawner) {
     //set up global logger
     rtt_init_print!();
 
-    spawner.spawn(defmtusb_wrapper(p.USB));
+    let _ = spawner.spawn(defmtusb_wrapper(p.USB));
 
     //delay needed to set up usb connection
     Timer::after_secs(3).await;
@@ -52,7 +53,7 @@ async fn main(spawner: Spawner) {
     let i2c_bus = I2C_BUS.init(Mutex::new(i2c));
 
     //spawn adm1176 driver task
-    spawner.spawn(i2c_task_a(i2c_bus));
+    let _ = spawner.spawn(i2c_task_a(i2c_bus));
 
 
     loop {
@@ -81,7 +82,7 @@ async fn defmtusb_wrapper(usb: Peri<'static, USB>) {
 async fn i2c_task_a(i2c_bus: &'static I2c1Bus) {
     let i2c_dev = I2cDevice::new(i2c_bus);
     let mut sensor = adm1176::new(i2c_dev, 0x40);
-    sensor.config(&["V_CONT", "I_CONT"]).await;
+    let _ = sensor.config(&["V_CONT", "I_CONT"]).await;
     loop {
         match sensor.read_voltage_current().await {
             Ok((voltage, current)) => {
